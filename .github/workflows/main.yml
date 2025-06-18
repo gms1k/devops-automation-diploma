@@ -41,7 +41,11 @@ jobs:
 
       # Крок 4: Запустити юніт-тести
       - name: Run tests
-        run: pytest # Запускаємо pytest, який знайде наш test_app.py
+        run: |
+          # Додаємо поточний робочий каталог до PYTHONPATH
+          # Це дозволить Python знайти ваш модуль 'app.py'
+          export PYTHONPATH=$PYTHONPATH:$(pwd)
+          pytest # Запускаємо pytest
 
       # Крок 5: Зібрати Docker образ твого додатку
       # Ми поки що просто збираємо образ, не відправляючи його нікуди.
