@@ -1,0 +1,58 @@
+# Назва твого "пайплайну" (ланцюжка дій)
+name: CI/CD Pipeline
+
+# Цей блок визначає, коли запускати пайплайн
+on:
+  # Запускати при кожному "пуші" (відправці змін) у гілку 'main'
+  push:
+    branches:
+      - main
+  # Запускати при створенні або оновленні Pull Request (запиту на об'єднання коду)
+  # в гілку 'main'. Це корисно для перевірки коду перед об'єднанням.
+  pull_request:
+    branches:
+      - main
+
+# Блок "jobs" визначає завдання, які потрібно виконати
+jobs:
+  # Назва першого завдання
+  build-and-test:
+    # На якій операційній системі виконувати завдання.
+    # 'ubuntu-latest' означає останню версію Ubuntu, яку надає GitHub.
+    runs-on: ubuntu-latest
+
+    # Список кроків, які потрібно виконати в цьому завданні
+    steps:
+      # Крок 1: Завантажити код з твого репозиторію на віртуальну машину GitHub Actions
+      - name: Checkout code
+        uses: actions/checkout@v4 # Використовуємо готовий "action" для цього
+
+      # Крок 2: Налаштувати середовище Python
+      - name: Set up Python
+        uses: actions/setup-python@v5 # Використовуємо готовий "action" для налаштування Python
+        with:
+          python-version: '3.10' # Вказуємо, яку версію Python встановити
+
+      # Крок 3: Встановити всі необхідні залежності Python (з requirements.txt)
+      - name: Install dependencies
+        run: | # 'run' дозволяє виконувати кілька команд оболонки
+          python -m pip install --upgrade pip # Оновити pip
+          pip install -r requirements.txt     # Встановити залежності з файлу
+
+      # Крок 4: Запустити юніт-тести
+      - name: Run tests
+        run: pytest # Запускаємо pytest, який знайде наш test_app.py
+
+      # Крок 5: Зібрати Docker образ твого додатку
+      # Ми поки що просто збираємо образ, не відправляючи його нікуди.
+      # Деплой в хмару (на реальний сервер) буде пізніше, коли ми налаштуємо Terraform.
+      - name: Build Docker image
+        uses: docker/build-push-action@v5 # Використовуємо готовий "action" для роботи з Docker
+        with:
+          context: .                     # Збираємо образ з поточної директорії
+          push: false                    # Не відправляти образ в реєстр (наприклад, Docker Hub)
+          tags: devops-app:latest        # Дати образу назву 'devops-app' з тегом 'latest'
+          # Якщо ти колись будеш деплоїти на Docker Hub, тут потрібно буде додати:
+          # username: ${{ secrets.DOCKER_USERNAME }}
+          # password: ${{ secrets.DOCKER_PASSWORD }}
+          # push: true
